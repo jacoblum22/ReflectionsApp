@@ -1,0 +1,37 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Python
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+*.pyc
+
+# Node
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+
+# Runtime and local app data
+data/runtime/
+
+# Personal/local content (uncomment if you do not want to track content)
+# data/nodes/
+# data/connections/
+# data/inbox/
+
+# Database/vector stores (future)
+*.db
+*.sqlite
+*.sqlite3
+chroma/
