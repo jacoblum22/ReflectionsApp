@@ -1,22 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { EntryForm } from './components/EntryForm'
+import type { Entry } from './types/entry'
+import './App.css'
 
 function App() {
-  const [status, setStatus] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((res) => res.json())
-      .then((data: { status: string }) => setStatus(data.status))
-      .catch((err: unknown) => setError(String(err)))
-  }, [])
+  // lastSaved holds the most recently saved Entry so we can show it as a preview.
+  // null means nothing has been saved yet this session.
+  const [lastSaved, setLastSaved] = useState<Entry | null>(null)
 
   return (
     <div>
-      <h1>ReflectionsApp</h1>
-      {!status && !error && <p>Checking API…</p>}
-      {status && <p>API status: {status}</p>}
-      {error && <p>Error: {error}</p>}
+      <h1>New Entry</h1>
+
+      {/* onSave receives the completed Entry object from the form */}
+      <EntryForm onSave={setLastSaved} />
+
+      {lastSaved && (
+        <div className="saved-preview">
+          <h2>Saved — would send to backend:</h2>
+          {/* JSON.stringify with indent=2 makes the structure readable */}
+          <pre>{JSON.stringify(lastSaved, null, 2)}</pre>
+        </div>
+      )}
     </div>
   )
 }

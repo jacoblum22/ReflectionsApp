@@ -13,7 +13,10 @@ Core interaction:
 
 Node types currently in scope:
 
-- `entry`
+- `entry` (MVP)
+
+Deferred to post-MVP:
+
 - `person`
 - `event`
 
@@ -45,7 +48,16 @@ System of record:
 
 ## 4. Node Model (Do Now)
 
-All nodes share a normalized base schema:
+### MVP entry schema
+
+- `node_id` (UUID, auto-generated)
+- `title_or_name`
+- `created_at`
+- `body_text`
+
+### Full base schema (post-MVP)
+
+When person/event nodes and AI-generated content are introduced, all nodes share:
 
 - `node_id` (UUID)
 - `node_type` (`entry`, `person`, `event`, etc.)
@@ -55,13 +67,12 @@ All nodes share a normalized base schema:
 - `tags`
 - `body_text`
 - `status` (`human`, `ai_confirmed`, `ai_unconfirmed`)
+- `metadata` (flexible object for type-specific fields)
 
-Type-specific fields are stored in a flexible metadata object.
+Examples of type-specific metadata:
 
-Examples:
-
-- Person-specific metadata can include `age`, `birthday`, `relationship`.
-- Event-specific metadata can include `event_date`.
+- Person: `age`, `birthday`, `relationship`
+- Event: `event_date`
 
 ## 5. Markdown File Format (Do Now)
 
