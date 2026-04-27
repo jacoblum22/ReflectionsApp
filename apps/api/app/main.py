@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.entries import router as entries_router
+
 app = FastAPI(title="ReflectionsApp API")
 
 app.add_middleware(
@@ -9,6 +11,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(entries_router)
 
 
 @app.get("/health")

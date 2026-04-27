@@ -4,23 +4,42 @@ import type { Entry } from './types/entry'
 import './App.css'
 
 function App() {
-  // lastSaved holds the most recently saved Entry so we can show it as a preview.
-  // null means nothing has been saved yet this session.
-  const [lastSaved, setLastSaved] = useState<Entry | null>(null)
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSave(entry: Entry) {
+    setError(null)
+    try {
+      const res = await fetch('/api/entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+      })
+
+      if (!res.ok) {
+        // Surface any validation errors from FastAPI
+        const detail = await res.text()
+        throw new Error(`${res.status}: ${detail}`)
+      }
+
+      const data = (await res.json()) as { node_id: string; file: string }
+      setSavedId(data.node_id)
+    } catch (err: unknown) {
+      setError(String(err))
+    }
+  }
 
   return (
     <div>
       <h1>New Entry</h1>
 
-      {/* onSave receives the completed Entry object from the form */}
-      <EntryForm onSave={setLastSaved} />
+      <EntryForm onSave={handleSave} />
 
-      {lastSaved && (
-        <div className="saved-preview">
-          <h2>Saved — would send to backend:</h2>
-          {/* JSON.stringify with indent=2 makes the structure readable */}
-          <pre>{JSON.stringify(lastSaved, null, 2)}</pre>
-        </div>
+      {savedId && (
+        <p className="saved-notice">✓ Entry saved — id: {savedId}</p>
+      )}
+      {error && (
+        <p className="error-notice">Error saving entry: {error}</p>
       )}
     </div>
   )

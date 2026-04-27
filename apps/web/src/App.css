@@ -60,3 +60,15 @@ button[type='submit'] {
   font-size: 0.85rem;
   white-space: pre-wrap;
 }
+
+.saved-notice {
+  margin-top: 1rem;
+  color: green;
+  font-weight: 600;
+}
+
+.error-notice {
+  margin-top: 1rem;
+  color: red;
+  font-weight: 600;
+}
