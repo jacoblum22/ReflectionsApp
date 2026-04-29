@@ -15,11 +15,16 @@ export function ChatPanel({ entryId }: Props) {
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Reset the conversation when the user opens a different entry.
+  // Reset the conversation and load saved history when the user opens a different entry.
   useEffect(() => {
     setMessages([])
     setInput('')
     setError(null)
+
+    fetch(`/api/chat/${entryId}/history`)
+      .then((res) => res.json())
+      .then((data: ChatMessage[]) => setMessages(data))
+      .catch(() => {/* history missing is fine — start fresh */})
   }, [entryId])
 
   // Scroll to the bottom after each new message.

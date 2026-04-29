@@ -1,7 +1,8 @@
 import httpx
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.chat import ChatRequest, ChatResponse
+from app.schemas.chat import ChatMessage, ChatRequest, ChatResponse
+from app.services.chat_service import load_chat, save_chat
 from app.services.entry_service import get_entry
 
 OLLAMA_BASE = "http://localhost:11434"
@@ -29,6 +30,12 @@ def list_models() -> list[str]:
     return [m["name"] for m in data.get("models", [])]
 
 
+@router.get("/{entry_id}/history", response_model=list[ChatMessage])
+def get_history(entry_id: str) -> list[dict[str, str]]:
+    """Load the saved conversation for an entry, or return [] if none yet."""
+    return load_chat(entry_id)
+
+
 @router.post("", response_model=ChatResponse)
 def chat(request: ChatRequest) -> ChatResponse:
     """
@@ -37,6 +44,7 @@ def chat(request: ChatRequest) -> ChatResponse:
     The diary entry is loaded from disk and injected as a system prompt so the
     model has full context. The complete message history is re-sent each turn —
     this is stateless HTTP, same as the rest of the app.
+    After each reply the full conversation is saved to disk automatically.
     """
     entry = get_entry(request.entry_id)
     if entry is None:
@@ -72,6 +80,13 @@ def chat(request: ChatRequest) -> ChatResponse:
 
     data = response.json()
     assistant_message = data["message"]
-    return ChatResponse(
+    reply = ChatResponse(
         role=assistant_message["role"], content=assistant_message["content"]
     )
+
+    # Persist the full conversation (user messages + this reply) to disk.
+    all_messages = [{"role": m.role, "content": m.content} for m in request.messages]
+    all_messages.append({"role": reply.role, "content": reply.content})
+    save_chat(request.entry_id, all_messages)
+
+    return reply

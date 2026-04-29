@@ -25,10 +25,9 @@ Thumbs.db
 # Runtime and local app data
 data/runtime/
 
-# Personal/local content (uncomment if you do not want to track content)
-# data/nodes/
-# data/connections/
-# data/inbox/
+# User content — diary entries and chats are personal; never commit them
+data/nodes/human/*.md
+data/chats/*.json
 
 # Database/vector stores (future)
 *.db
