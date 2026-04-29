@@ -4,3 +4,4 @@ pytest
 ruff
 python-dotenv
 httpx
+python-frontmatter

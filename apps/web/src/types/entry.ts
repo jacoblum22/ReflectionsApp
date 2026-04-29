@@ -14,3 +14,13 @@ export interface Entry {
   created_at: string   // YYYY-MM-DD — defaults to today, user-editable
   body_text: string
 }
+
+/** Shape returned in the sidebar list — no body text. */
+export interface EntrySummary {
+  node_id: string
+  title_or_name: string
+  created_at: string
+}
+
+/** Full entry shape returned when a user opens an entry. */
+export type EntryDetail = Entry

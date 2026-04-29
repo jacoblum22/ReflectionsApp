@@ -1,9 +1,24 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from app.schemas.entry import EntryCreate
-from app.services.entry_service import write_entry_markdown
+from app.schemas.entry import EntryCreate, EntryDetail, EntrySummary
+from app.services.entry_service import get_entry, list_entries, write_entry_markdown
 
 router = APIRouter(prefix="/entries", tags=["entries"])
+
+
+@router.get("", response_model=list[EntrySummary])
+def read_entries() -> list[EntrySummary]:
+    """Return all entries sorted newest-first, without body text."""
+    return list_entries()
+
+
+@router.get("/{node_id}", response_model=EntryDetail)
+def read_entry(node_id: str) -> EntryDetail:
+    """Return a single entry including body text."""
+    entry = get_entry(node_id)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    return entry
 
 
 @router.post("", status_code=201)
