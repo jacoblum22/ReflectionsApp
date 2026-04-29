@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ChatPanel } from './components/ChatPanel'
 import { EntryForm } from './components/EntryForm'
 import { EntryView } from './components/EntryView'
 import { Sidebar } from './components/Sidebar'
@@ -81,6 +82,11 @@ function App() {
           <EntryView entry={selectedEntry} />
         )}
       </main>
+
+      {/* Chat panel is only shown when reading an entry */}
+      {view === 'reading' && selectedEntry && (
+        <ChatPanel entryId={selectedEntry.node_id} />
+      )}
     </div>
   )
 }

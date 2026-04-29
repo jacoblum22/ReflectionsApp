@@ -24,3 +24,9 @@ export interface EntrySummary {
 
 /** Full entry shape returned when a user opens an entry. */
 export type EntryDetail = Entry
+
+/** A single message in a chat conversation. */
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
