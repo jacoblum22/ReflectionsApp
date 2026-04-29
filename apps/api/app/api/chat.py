@@ -1,0 +1,77 @@
+import httpx
+from fastapi import APIRouter, HTTPException
+
+from app.schemas.chat import ChatRequest, ChatResponse
+from app.services.entry_service import get_entry
+
+OLLAMA_BASE = "http://localhost:11434"
+
+router = APIRouter(prefix="/chat", tags=["chat"])
+
+
+@router.get("/models")
+def list_models() -> list[str]:
+    """
+    Return the names of all locally available Ollama models.
+    Useful for verifying the Ollama connection and letting the frontend
+    offer a model picker in the future.
+    """
+    try:
+        response = httpx.get(f"{OLLAMA_BASE}/api/tags", timeout=5)
+        response.raise_for_status()
+    except httpx.RequestError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Cannot reach Ollama. Is it running?",
+        ) from exc
+
+    data = response.json()
+    return [m["name"] for m in data.get("models", [])]
+
+
+@router.post("", response_model=ChatResponse)
+def chat(request: ChatRequest) -> ChatResponse:
+    """
+    Send a conversation about a diary entry to Ollama and return the reply.
+
+    The diary entry is loaded from disk and injected as a system prompt so the
+    model has full context. The complete message history is re-sent each turn —
+    this is stateless HTTP, same as the rest of the app.
+    """
+    entry = get_entry(request.entry_id)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Entry not found")
+
+    system_prompt = (
+        "You are a thoughtful, reflective assistant. "
+        "The user has written the following diary entry and wants to reflect on it with you.\n\n"
+        f"Title: {entry.title_or_name}\n"
+        f"Date: {entry.created_at}\n\n"
+        f"{entry.body_text}\n\n"
+        "Engage with what they've written. Ask questions, offer perspective, and help them reflect."
+    )
+
+    # Build the message list for Ollama: system prompt first, then conversation history.
+    ollama_messages = [{"role": "system", "content": system_prompt}]
+    ollama_messages += [
+        {"role": m.role, "content": m.content} for m in request.messages
+    ]
+
+    try:
+        response = httpx.post(
+            f"{OLLAMA_BASE}/api/chat",
+            json={"model": request.model, "messages": ollama_messages, "stream": False},
+            timeout=120,  # local LLMs can be slow; 2 min is generous but safe
+        )
+        response.raise_for_status()
+    except httpx.RequestError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Cannot reach Ollama. Is it running?",
+        ) from exc
+
+    data = response.json()
+    assistant_message = data["message"]
+    return ChatResponse(
+        role=assistant_message["role"], content=assistant_message["content"]
+    )
