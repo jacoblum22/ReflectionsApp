@@ -77,6 +77,12 @@ def chat(request: ChatRequest) -> ChatResponse:
             status_code=503,
             detail="Cannot reach Ollama. Is it running?",
         ) from exc
+    except httpx.HTTPStatusError as exc:
+        # Ollama returned an error (e.g. model not loaded, out of memory).
+        raise HTTPException(
+            status_code=502,
+            detail=f"Ollama error: {exc.response.text}",
+        ) from exc
 
     data = response.json()
     assistant_message = data["message"]
